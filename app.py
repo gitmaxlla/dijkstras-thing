@@ -9,7 +9,7 @@ from indexed_priority_queue import IndexedPriorityQueue
 from colour import Color
 
 
-nodes = []
+nodes = [] # Можно устранить глобальные переменные, например вынести в свойства класса-состояния приложения
 edges = []
 
 def prompt_matrix():
@@ -24,13 +24,15 @@ def prompt_matrix():
 
     return matrix_description
 
-def from_incidency_matrix():
+def from_incidency_matrix(): # Добавить в начало имени функции load_
+    # Устранить дублирование кода в начале функций from_incidency_matrix и from_adjacency_matrix
+    # (Можно создать функцию, которая содержит дублирующийся код этих двух функций и вызывает в себе одну них в зависимости от типа таблицы (аргументом передается))
     matrix_description = prompt_matrix()
     if matrix_description is None: return
     
     clear()
 
-    RADIUS = 150
+    RADIUS = 150 # Вынести значения в константы в одном месте, например в конфигурационном классе
     START_OFFSET = RADIUS*2
 
     step_radians = (2*math.pi)/len(matrix_description)
@@ -53,7 +55,7 @@ def from_incidency_matrix():
             weight)
         )
 
-def from_adjacency_matrix():
+def from_adjacency_matrix(): # Добавить в начало имени функции load_
     matrix_description = prompt_matrix()
     if matrix_description is None: return
     
@@ -76,7 +78,7 @@ def from_adjacency_matrix():
                 weight = int(connection)
                 edges.append(Edge(nodes[i], nodes[j], weight))
 
-position_before_dragging = None
+position_before_dragging = None # Эти глобал переменные тоже убрать
 selection_offset = [0, 0]
 node_under_cursor = None
 
@@ -86,7 +88,7 @@ path_to = None
 
 prev_trace = None
 
-def clear():
+def clear(): # Все подобные функции, работающие с глобал переменными, можно сделать методами класса-состояния
     nodes_copy = nodes[::]
     for node in nodes_copy:
         remove_node(node)
@@ -161,7 +163,7 @@ def get_node_under_cursor(x, y):
     
     return None
 
-def mouse_left_pressed(event):
+def mouse_left_pressed(event): # Можно добавить в начало названия on_..., ибо обработчик события
     global node_under_cursor, selection_offset, \
         position_before_dragging
     
@@ -177,7 +179,7 @@ def mouse_left_pressed(event):
                 event.x, event.y
             )
 
-def mouse_left_dragged(event):
+def mouse_left_dragged(event): # Можно добавить в начало названия on_..., ибо обработчик события
     if node_under_cursor:
         canvas.after(0, node_under_cursor.set_position(
             event.x + selection_offset[0], 
@@ -222,27 +224,27 @@ def color_trace(_from, _to, trace):
     if _from not in color_nodes:
         color_nodes.append(_from)
 
-    start = Color("#90F1EF")
+    start = Color("#90F1EF") # Вынести значения в константы в одном месте, например в конфигурационном классе
     colors = list(start.range_to(Color("#F67E7D"), len(color_nodes)))
 
     for i, node in enumerate(color_nodes):
         color(node.oval, colors[i].hex_l)
 
 
-def clicked_on_node(node):
+def clicked_on_node(node): # Слишком большая функция, можно разбить на функции поменьше
     global selected_pair_edge, path_from, path_to, prev_trace
 
     if prev_trace is not None:
         for node in nodes:
             canvas.itemconfig(node.label, text=node.id+1)
         for node in nodes:
-            color(node.oval, "white")
+            color(node.oval, "white") # Вынести значения в константы в одном месте, например в конфигурационном классе
         remove_path_from()
         remove_path_to()
         prev_trace = None
         return
 
-    if 'grey' in canvas.itemconfig(node.oval)['fill']:
+    if 'grey' in canvas.itemconfig(node.oval)['fill']: # Вынести значения в константы в одном месте, например в конфигурационном классе
         if path_from is None:
             set_path_from(node)
         elif node is path_from:
@@ -256,7 +258,7 @@ def clicked_on_node(node):
 
         node.set_position(node.x, node.y)
 
-    color(node.oval, "grey")
+    color(node.oval, "grey") # Вынести значения в константы в одном месте, например в конфигурационном классе
     selected_pair_edge.append(node)
 
     if len(selected_pair_edge) == 2:
@@ -296,9 +298,9 @@ def clicked_on_node(node):
             prev_trace = trace
             color_trace(path_from, path_to, trace)
 
-def mouse_left_released(event):
+def mouse_left_released(event): # Можно добавить в начало названия on_..., ибо обработчик события
     global node_under_cursor, selected_pair_edge, prev_trace
-    DRAG_THRESHOLD = 5
+    DRAG_THRESHOLD = 5 # Вынести значения в константы в одном месте, например в конфигурационном классе
 
     if node_under_cursor:
         if node_under_cursor.distance_to(
@@ -333,10 +335,10 @@ def remove_node(node):
 
 def reset_selection(selected):
     for node in selected:
-        color(node.oval, "white")
+        color(node.oval, "white") # Вынести значения в константы в одном месте, например в конфигурационном классе
     return []
 
-def mouse_right_clicked(event):
+def mouse_right_clicked(event): # Можно добавить в начало названия on_..., ибо обработчик события
     node_under_cursor = \
         get_node_under_cursor(event.x, event.y)
     
@@ -357,8 +359,8 @@ def update_edge_positions(node):
         if edge._from is node or edge._to is node:
            edge.update_position()
 
-class Node:
-    SIZE = 50
+class Node: # Логика отрисовки в классах Node и Edge, что вроде как не есть хорошо (Сингл Респонсибилити Принципл), можно создать класс-рендер для работы с канвасом и вынести всё туда
+    SIZE = 50 # Вынести значения в константы в одном месте, например в конфигурационном классе
 
     canvas = None
     _counter = 0
@@ -446,7 +448,7 @@ class Edge:
         x_difference = self._to.x - self._from.x
         y_difference = self._to.y - self._from.y
 
-        LABEL_DISTANCE = -30
+        LABEL_DISTANCE = -30 # Вынести значения в константы в одном месте, например в конфигурационном классе
 
         shift_label_x = math.cos(angle_between_nodes + math.pi/2)*LABEL_DISTANCE - len(str(self.weight))*4
         shift_label_y = math.sin(angle_between_nodes + math.pi/2)*LABEL_DISTANCE - 6
@@ -485,7 +487,7 @@ root = Tk()
 root.title("Dijkstra's thing")
 root.geometry("1280x720")
 
-canvas = Canvas(bg="white")
+canvas = Canvas(bg="white") # Вынести значения в константы в одном месте, например в конфигурационном классе
 canvas.pack(fill="both", anchor=CENTER, expand=True)
 
 from_label = canvas.create_text(0, 0, text="from", angle=0, state=HIDDEN)
